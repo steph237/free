@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
   var history = <WordPair>[];
+
   GlobalKey? historyListKey;
 
   void getNext() {
@@ -37,13 +38,15 @@ class MyAppState extends ChangeNotifier {
     current = WordPair.random();
     notifyListeners();
   }
+
   var favorites = <WordPair>[];
 
-  void toggleFavorite() {
-    if (favorites.contains(current)) {
-      favorites.remove(current);
+  void toggleFavorite([WordPair? pair]) {
+    pair = pair ?? current;
+    if (favorites.contains(pair)) {
+      favorites.remove(pair);
     } else {
-      favorites.add(current);
+      favorites.add(pair);
     }
     notifyListeners();
   }
@@ -60,11 +63,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   var selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    var colorScheme = Theme.of(context).colorScheme;
 
     Widget page;
     switch (selectedIndex) {
@@ -78,8 +81,10 @@ class _MyHomePageState extends State<MyHomePage> {
         throw UnimplementedError('no widget for $selectedIndex');
     }
 
+    // The container for the current page, with its background color
+    // and subtle switching animation.
     var mainArea = ColoredBox(
-      color:Colors.white70,
+      color: colorScheme.surfaceVariant,
       child: AnimatedSwitcher(
         duration: Duration(milliseconds: 200),
         child: page,
@@ -90,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth < 450) {
-            //mobile view
+          //mobile
             return Column(
               children: [
                 Expanded(child: mainArea),
@@ -168,6 +173,11 @@ class GeneratorPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Expanded(
+            flex: 3,
+            child: HistoryListView(),
+          ),
+          SizedBox(height: 10),
           BigCard(pair: pair),
           SizedBox(height: 10),
           Row(
@@ -189,16 +199,20 @@ class GeneratorPage extends StatelessWidget {
               ),
             ],
           ),
+          Spacer(flex: 2),
         ],
+
+
       ),
     );
   }
 }
 class BigCard extends StatelessWidget {
   const BigCard({
-    super.key,
+    Key? key,
+
     required this.pair,
-  });
+  }) : super(key: key);
 
   final WordPair pair;
 
@@ -210,15 +224,17 @@ class BigCard extends StatelessWidget {
     );
 
     return Card(
-        color: theme.colorScheme.primary,
-        child: Padding(
+      color: theme.colorScheme.primary,
+      child: Padding(
         padding: const EdgeInsets.all(20),
-          child: Text(
-          pair.asSnakeCase,
+
+        // ↓ Make the following change.
+        child: Text(
+          pair.asLowerCase,
           style: style,
           semanticsLabel: pair.asPascalCase,
-              ),
-        )
+        ),
+      ),
     );
   }
 }
@@ -250,7 +266,7 @@ class FavoritesPage extends StatelessWidget {
                 appState.removeFavorite(pair);
               },
             ),
-            title: Text(pair.asLowerCase),
+            title: Text(pair.asSnakeCase),
           ),
       ],
     );
@@ -265,11 +281,11 @@ class HistoryListView extends StatefulWidget {
 }
 
 class _HistoryListViewState extends State<HistoryListView> {
-  /// Needed so that [MyAppState] can tell [AnimatedList] below to animate
-  /// new items.
+  // Needed so that [MyAppState] can tell [AnimatedList] below to animate
+  //new items.
   final _key = GlobalKey();
 
-  /// Used to "fade out" the history items at the top, to suggest continuation.
+  // Used to "fade out" the history items at the top, to suggest continuation.
   static const Gradient _maskingGradient = LinearGradient(
     // This gradient goes from fully transparent to fully opaque black...
     colors: [Colors.transparent, Colors.black],
@@ -292,7 +308,7 @@ class _HistoryListViewState extends State<HistoryListView> {
       child: AnimatedList(
         key: _key,
         reverse: true,
-        padding: EdgeInsets.only(top: 50),
+        padding: EdgeInsets.only(top: 100),
         initialItemCount: appState.history.length,
         itemBuilder: (context, index, animation) {
           final pair = appState.history[index];
@@ -301,7 +317,7 @@ class _HistoryListViewState extends State<HistoryListView> {
             child: Center(
               child: TextButton.icon(
                 onPressed: () {
-                  appState.toggleFavorite;
+                  appState.toggleFavorite(pair);
                 },
                 icon: appState.favorites.contains(pair)
                     ? Icon(Icons.favorite, size: 12)
