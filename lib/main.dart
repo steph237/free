@@ -79,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     var mainArea = ColoredBox(
-      color:Colors.white60,
+      color:Colors.white70,
       child: AnimatedSwitcher(
         duration: Duration(milliseconds: 200),
         child: page,
@@ -90,8 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth < 450) {
-            // Use a more mobile-friendly layout with BottomNavigationBar
-            // on narrow screens.
+            //mobile view
             return Column(
               children: [
                 Expanded(child: mainArea),
